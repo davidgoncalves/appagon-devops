@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP="${1:-}"
+
+if [[ -z "${APP}" ]]; then
+    echo "Utilisation : ./deploy <application>"
+    echo
+    echo "Applications disponibles :"
+
+    find "${ROOT_DIR}/apps" \
+        -maxdepth 1 \
+        -name "*.env" \
+        -exec basename {} .env \; \
+        | sort
+
+    exit 1
+fi
+
+CONFIG_FILE="${ROOT_DIR}/apps/${APP}.env"
+
+if [[ ! -f "${CONFIG_FILE}" ]]; then
+    echo "Erreur : application inconnue : ${APP}"
+    exit 1
+fi
+
+exec "${ROOT_DIR}/scripts/deploy-php.sh" "${CONFIG_FILE}"

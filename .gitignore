@@ -1,0 +1,8 @@
+
+# Configurations locales et potentiellement sensibles
+apps/*.env
+
+# Garder les modèles
+!apps/*.env.example
+
+.DS_Store
