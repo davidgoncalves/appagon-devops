@@ -3,18 +3,25 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=scripts/lib/output.sh
+source "${ROOT_DIR}/scripts/lib/output.sh"
+
 APP="${1:-}"
 
 if [[ -z "${APP}" ]]; then
-    echo "Utilisation : ./deploy <application>"
-    echo
-    echo "Applications disponibles :"
+    printf '%s\n' "Utilisation : ${C_BLUE}./deploy <application>${C_RESET}"
+    printf '\n%s\n' "Applications disponibles :"
 
-    find "${ROOT_DIR}/apps" \
-        -maxdepth 1 \
-        -name "*.env" \
-        -exec basename {} .env \; \
-        | sort
+    while IFS= read -r available_app; do
+        printf '%s\n' "  ${C_GREEN}${available_app}${C_RESET}"
+    done < <(
+        find "${ROOT_DIR}/apps" \
+            -maxdepth 1 \
+            -name "*.env" \
+            -exec basename {} .env \; \
+            | sort
+    )
 
     exit 1
 fi
@@ -22,8 +29,18 @@ fi
 CONFIG_FILE="${ROOT_DIR}/apps/${APP}.env"
 
 if [[ ! -f "${CONFIG_FILE}" ]]; then
-    echo "Erreur : application inconnue : ${APP}"
-    exit 1
+    fail "application inconnue : ${APP}"
 fi
 
-exec "${ROOT_DIR}/scripts/deploy-php.sh" "${CONFIG_FILE}"
+# shellcheck disable=SC1090
+source "${CONFIG_FILE}"
+
+DEPLOY_SCRIPT="${DEPLOY_SCRIPT:-php}"
+
+case "${DEPLOY_SCRIPT}" in
+    php)    exec "${ROOT_DIR}/scripts/deploy-php.sh" "${CONFIG_FILE}" ;;
+    django) exec "${ROOT_DIR}/scripts/deploy-django.sh" "${CONFIG_FILE}" ;;
+    *)
+        fail "DEPLOY_SCRIPT invalide : ${DEPLOY_SCRIPT} (php|django)"
+        ;;
+esac

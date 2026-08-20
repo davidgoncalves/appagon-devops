@@ -1,8 +1,11 @@
-
 # Configurations locales et potentiellement sensibles
 apps/*.env
 
 # Garder les modèles
 !apps/*.env.example
 
+# Logs de déploiement locaux
+logs/
+
+# Fichiers macOS
 .DS_Store

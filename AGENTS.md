@@ -19,13 +19,20 @@ Rules:
 - Never modify production manually if Git manages the file
 - Always preserve backward compatibility
 
+Deploy: `./deploy <slug>` from this repo root. Planto is `./deploy planto` (not `plant`).
+
 ## Vérification
 
 From this repo root. Script syntax only — **never run a deploy** to verify.
 
 ```bash
+bash -n deploy
 bash -n scripts/deploy-django.sh
 bash -n scripts/deploy-php.sh
+bash -n scripts/lib/output.sh
 ```
 
-If `shellcheck` is installed: `shellcheck scripts/*.sh`.
+If `shellcheck` is installed: `shellcheck -x deploy scripts/*.sh scripts/lib/*.sh`.
+
+Both deployment scripts are twins: any change to one usually belongs in the
+other. Colored output lives only in `scripts/lib/output.sh`.

@@ -103,8 +103,8 @@ if [[ ! -d ".git" ]]; then
     exit 1
 fi
 
-# Ignore les fichiers non suivis (.env, writable/, public/assets…) : seuls les
-# fichiers suivis peuvent bloquer un git pull --ff-only.
+# Ignore les fichiers non suivis (.env, logs/, static/…) : seuls les fichiers
+# suivis peuvent bloquer un git pull --ff-only.
 if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
     printf '%s\n' "    ${R_RED}x  le serveur contient des modifications Git non committées.${R_RESET}" >&2
     git status --short --untracked-files=no
@@ -119,11 +119,9 @@ git fetch origin "${BRANCH}"
 git checkout "${BRANCH}"
 git pull --ff-only origin "${BRANCH}"
 
-composer install \
-    --no-dev \
-    --prefer-dist \
-    --no-interaction \
-    --optimize-autoloader
+# shellcheck disable=SC1091
+source env/bin/activate
+pip install -r requirements.txt
 
 new_commit="$(git rev-parse HEAD)"
 
@@ -152,3 +150,5 @@ if [[ -n "${HEALTHCHECK_URL:-}" ]]; then
 fi
 
 deploy_succeeded=1
+
+warn "Redémarre l'application dans le panneau Alwaysdata si le code Python a changé."
